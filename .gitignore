@@ -1,0 +1,21 @@
+# Ignore compiled class files
+*.class
+
+# Ignore Java archives
+*.jar
+
+# Logs
+*.log
+
+# IDE config
+*.iml
+.idea/
+.vscode/
+
+# Output folders
+out/
+bin/
+target/
+
+# Ignore input/output data if needed
+*.json
