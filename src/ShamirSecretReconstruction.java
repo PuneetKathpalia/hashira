@@ -1,103 +1,3 @@
-// import java.math.BigInteger;
-// import java.nio.file.Files;
-// import java.nio.file.Paths;
-// import java.util.*;
-// import org.json.*;
-
-// public class ShamirSecretReconstruction {
-
-//     public static BigInteger lagrangeInterpolation(BigInteger[] x, BigInteger[] y, BigInteger prime) {
-//         BigInteger secret = BigInteger.ZERO;
-//         int k = x.length;
-
-//         for (int i = 0; i < k; i++) {
-//             BigInteger numerator = BigInteger.ONE;
-//             BigInteger denominator = BigInteger.ONE;
-
-//             for (int j = 0; j < k; j++) {
-//                 if (i != j) {
-//                     numerator = numerator.multiply(x[j].negate()).mod(prime);
-//                     denominator = denominator.multiply(x[i].subtract(x[j])).mod(prime);
-//                 }
-//             }
-
-//             BigInteger term = y[i].multiply(numerator).mod(prime);
-//             BigInteger invDenominator = denominator.modInverse(prime);
-//             term = term.multiply(invDenominator).mod(prime);
-//             secret = secret.add(term).mod(prime);
-//         }
-
-//         return secret;
-//     }
-
-//     public static List<List<BigInteger[]>> getCombinations(List<BigInteger[]> shares, int k) {
-//         List<List<BigInteger[]>> result = new ArrayList<>();
-//         combineHelper(shares, new ArrayList<>(), 0, k, result);
-//         return result;
-//     }
-
-//     private static void combineHelper(List<BigInteger[]> shares, List<BigInteger[]> temp, int start, int k, List<List<BigInteger[]>> result) {
-//         if (k == 0) {
-//             result.add(new ArrayList<>(temp));
-//             return;
-//         }
-
-//         for (int i = start; i <= shares.size() - k; i++) {
-//             temp.add(shares.get(i));
-//             combineHelper(shares, temp, i + 1, k - 1, result);
-//             temp.remove(temp.size() - 1);
-//         }
-//     }
-
-//     public static void main(String[] args) throws Exception {
-//         String json = Files.readString(Paths.get("input.json"));
-//         JSONObject obj = new JSONObject(json);
-
-//         int n = obj.getInt("n");
-//         int k = obj.getInt("k");
-//         JSONArray arr = obj.getJSONArray("shares");
-
-//         List<BigInteger[]> shares = new ArrayList<>();
-//         for (int i = 0; i < arr.length(); i++) {
-//             JSONArray pair = arr.getJSONArray(i);
-//             BigInteger x = new BigInteger(pair.get(0).toString());
-//             BigInteger y = new BigInteger(pair.get(1).toString());
-//             shares.add(new BigInteger[]{x, y});
-//         }
-
-//         BigInteger prime = new BigInteger("208351617316091241234326746312124448251235562226470491514186331217050270460481");
-
-//         Map<BigInteger, Integer> secretCounts = new HashMap<>();
-//         List<List<BigInteger[]>> combinations = getCombinations(shares, k);
-
-//         for (List<BigInteger[]> combo : combinations) {
-//             BigInteger[] x = new BigInteger[k];
-//             BigInteger[] y = new BigInteger[k];
-
-//             for (int i = 0; i < k; i++) {
-//                 x[i] = combo.get(i)[0];
-//                 y[i] = combo.get(i)[1];
-//             }
-
-//             BigInteger secret = lagrangeInterpolation(x, y, prime);
-//             secretCounts.put(secret, secretCounts.getOrDefault(secret, 0) + 1);
-//         }
-
-//         BigInteger correctSecret = null;
-//         int maxCount = 0;
-//         for (Map.Entry<BigInteger, Integer> entry : secretCounts.entrySet()) {
-//             if (entry.getValue() > maxCount) {
-//                 maxCount = entry.getValue();
-//                 correctSecret = entry.getKey();
-//             }
-//         }
-
-//         System.out.println("✅ Reconstructed Secret: " + correctSecret);
-//     }
-// }
-
-
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.IOException;
@@ -116,8 +16,6 @@ public class ShamirSecretReconstruction {
             this.y = y;
         }
     }
-
-    // Lagrange interpolation to reconstruct the secret
     public static BigInteger lagrangeInterpolation(List<Share> shares, BigInteger primeMod) {
         BigInteger secret = BigInteger.ZERO;
         int k = shares.size();
@@ -143,7 +41,6 @@ public class ShamirSecretReconstruction {
         return secret;
     }
 
-    // Helper to generate all combinations of size k from n shares
     public static void generateCombinations(List<Share> shares, int k, int start, List<Share> temp, List<List<Share>> result) {
         if (temp.size() == k) {
             result.add(new ArrayList<>(temp));
@@ -157,7 +54,6 @@ public class ShamirSecretReconstruction {
     }
 
     public static void main(String[] args) throws IOException {
-        // Step 1: Read JSON input
         String jsonInput = Files.readString(Paths.get("input.json"));
         JSONObject jsonObject = new JSONObject(jsonInput);
 
@@ -174,11 +70,9 @@ public class ShamirSecretReconstruction {
             allShares.add(new Share(x, y));
         }
 
-        // Step 2: Generate all combinations of k out of n
         List<List<Share>> combinations = new ArrayList<>();
         generateCombinations(allShares, k, 0, new ArrayList<>(), combinations);
 
-        // Step 3: Try all combinations to reconstruct the secret
         Map<BigInteger, Integer> frequencyMap = new HashMap<>();
         Map<BigInteger, List<List<Share>>> secretToCombos = new HashMap<>();
 
@@ -187,8 +81,6 @@ public class ShamirSecretReconstruction {
             frequencyMap.put(secret, frequencyMap.getOrDefault(secret, 0) + 1);
             secretToCombos.computeIfAbsent(secret, s -> new ArrayList<>()).add(combo);
         }
-
-        // Step 4: Find the most frequent secret
         BigInteger correctSecret = null;
         int maxFreq = 0;
         for (Map.Entry<BigInteger, Integer> entry : frequencyMap.entrySet()) {
@@ -199,8 +91,7 @@ public class ShamirSecretReconstruction {
         }
 
         System.out.println("✅ Reconstructed Secret: " + correctSecret);
-
-        // Optional: Identify likely correct shares
+        
         Set<String> validShareSet = new HashSet<>();
         for (Share s : secretToCombos.get(correctSecret).get(0)) {
             validShareSet.add(s.x + ":" + s.y);
